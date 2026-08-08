@@ -198,6 +198,24 @@ public:
         }
     }
 
+    void listDevices() const {
+        cout << "\n--- Connected Devices ---" << endl;
+        for (size_t i = 0; i < devices.size(); ++i) {
+            cout << i + 1 << ". " << devices[i]->getName() << " [" << (devices[i]->getStatus() ? "ON" : "OFF") << "]" << endl;
+        }
+    }
+
+    size_t getDeviceCount() const {
+        return devices.size();
+    }
+
+    Device* getDevice(size_t index) {
+        if (index < devices.size()) {
+            return devices[index];
+        }
+        return nullptr;
+    }
+
     void executeGoodNightMacro(Light* livingLight, Light* kitchenLight, Thermostat* thermo, SmartLock* frontDoor, SecurityCamera* cam, const string& authKey) {
         cout << "\n--- 3. Executing 'Good Night' Macro (5+ devices) ---" << endl;
 
@@ -236,12 +254,23 @@ void demoUnauthorizedAccess(SecurityCamera* cam) {
     cam->arm("HACKER99");
 }
 
-int main() {
+void showMenu() {
+    cout << "\n=================================================" << endl;
+    cout << "        Smart Home Hub - Control Panel           " << endl;
     cout << "=================================================" << endl;
-    cout << "        Smart Home Hub - Demo Script             " << endl;
+    cout << "1. List all devices" << endl;
+    cout << "2. Toggle a specific device" << endl;
+    cout << "3. Toggle all devices (Polymorphic Demo)" << endl;
+    cout << "4. Simulate device malfunction (Operator Overload Demo)" << endl;
+    cout << "5. Execute 'Good Night' Macro" << endl;
+    cout << "6. Run Scenario A: Feedback Loop" << endl;
+    cout << "7. Run Scenario B: Unauthorized Access" << endl;
+    cout << "8. Exit" << endl;
     cout << "=================================================" << endl;
-    this_thread::sleep_for(chrono::seconds(1));
+    cout << "Enter your choice: ";
+}
 
+int main() {
     // Initialize Devices
     Light* livingLight = new Light("Living Room Light");
     Light* kitchenLight = new Light("Kitchen Light");
@@ -261,34 +290,74 @@ int main() {
     myHub.addDevice(hvacCooler);
     myHub.addDevice(mainThermo);
 
-    // 1. Normal polymorphic toggling
-    myHub.toggleAll();
-    this_thread::sleep_for(chrono::seconds(1));
+    bool running = true;
+    while (running) {
+        showMenu();
+        string choiceStr;
+        if (!(cin >> choiceStr)) {
+            // Handle EOF (Ctrl+D) or stream errors gracefully
+            cout << "\nExiting Smart Home Hub..." << endl;
+            break;
+        }
 
-    // 2. Operator overloading demonstration
-    myHub.demonstrateOverload();
-    this_thread::sleep_for(chrono::seconds(1));
+        int choice = 0;
+        try {
+            choice = stoi(choiceStr);
+        } catch (...) {
+            cout << "Invalid input. Please enter a number." << endl;
+            continue;
+        }
 
-    // Set some initial states to make the Good Night macro more meaningful
-    if (!livingLight->getStatus()) livingLight->toggle();
-    if (!kitchenLight->getStatus()) kitchenLight->toggle();
-    if (frontDoor->getStatus()) frontDoor->toggle(); // ensure it's unlocked initially
+        switch (choice) {
+            case 1:
+                myHub.listDevices();
+                break;
+            case 2: {
+                myHub.listDevices();
+                cout << "Enter the device number to toggle (1-" << myHub.getDeviceCount() << "): ";
+                string devChoiceStr;
+                cin >> devChoiceStr;
+                try {
+                    int devChoice = stoi(devChoiceStr);
+                    Device* d = myHub.getDevice(devChoice - 1);
+                    if (d) {
+                        d->toggle();
+                    } else {
+                        cout << "Invalid device number." << endl;
+                    }
+                } catch (...) {
+                    cout << "Invalid input." << endl;
+                }
+                break;
+            }
+            case 3:
+                myHub.toggleAll();
+                break;
+            case 4:
+                myHub.demonstrateOverload();
+                break;
+            case 5:
+                // Set some initial states to make the Good Night macro more meaningful
+                if (!livingLight->getStatus()) livingLight->toggle();
+                if (!kitchenLight->getStatus()) kitchenLight->toggle();
+                if (frontDoor->getStatus()) frontDoor->toggle(); // ensure it's unlocked initially
 
-    // 3. The "Good Night" Macro (5+ devices)
-    myHub.executeGoodNightMacro(livingLight, kitchenLight, mainThermo, frontDoor, frontCam, "secure123");
-    this_thread::sleep_for(chrono::seconds(1));
-
-    // 4. The Feedback Loop scenario
-    demoFeedbackLoop(mainThermo);
-    this_thread::sleep_for(chrono::seconds(1));
-
-    // 5. The Unauthorized Access scenario
-    demoUnauthorizedAccess(frontCam);
-    this_thread::sleep_for(chrono::seconds(1));
-
-    cout << "\n=================================================" << endl;
-    cout << "              Demo Completed                     " << endl;
-    cout << "=================================================" << endl;
+                myHub.executeGoodNightMacro(livingLight, kitchenLight, mainThermo, frontDoor, frontCam, "secure123");
+                break;
+            case 6:
+                demoFeedbackLoop(mainThermo);
+                break;
+            case 7:
+                demoUnauthorizedAccess(frontCam);
+                break;
+            case 8:
+                cout << "Exiting Smart Home Hub. Goodbye!" << endl;
+                running = false;
+                break;
+            default:
+                cout << "Invalid choice. Please select from 1-8." << endl;
+        }
+    }
 
     // Cleanup dynamically allocated devices
     delete livingLight;
