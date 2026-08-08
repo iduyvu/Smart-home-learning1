@@ -52,19 +52,16 @@ public:
 };
 
 class SmartLock : public Device {
-private:
-    bool isLocked;
 public:
-    SmartLock(string n) : Device(n), isLocked(false) {}
+    SmartLock(string n) : Device(n) {}
 
     void toggle() override {
         isOn = !isOn;
-        isLocked = !isLocked;
-        cout << "[SmartLock] " << name << " is now " << (isLocked ? "LOCKED" : "UNLOCKED") << endl;
+        cout << "[SmartLock] " << name << " is now " << (isOn ? "LOCKED" : "UNLOCKED") << endl;
     }
 
     void lock() {
-        if (!isLocked) {
+        if (!isOn) {
             toggle();
         } else {
             cout << "[SmartLock] " << name << " is already LOCKED." << endl;
@@ -337,11 +334,6 @@ int main() {
                 myHub.demonstrateOverload();
                 break;
             case 5:
-                // Set some initial states to make the Good Night macro more meaningful
-                if (!livingLight->getStatus()) livingLight->toggle();
-                if (!kitchenLight->getStatus()) kitchenLight->toggle();
-                if (frontDoor->getStatus()) frontDoor->toggle(); // ensure it's unlocked initially
-
                 myHub.executeGoodNightMacro(livingLight, kitchenLight, mainThermo, frontDoor, frontCam, "secure123");
                 break;
             case 6:

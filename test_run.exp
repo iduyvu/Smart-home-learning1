@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+spawn ./main
+expect "Enter your choice: "
+send "2\n"
+expect "Enter the device number to toggle"
+send "3\n"
+expect "Enter your choice: "
+send "5\n"
+expect "Enter your choice: "
+send "8\n"
+expect eof
