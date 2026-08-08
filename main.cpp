@@ -31,6 +31,14 @@ public:
         }
     }
 
+    // Thêm hàm ép bật nguồn vào class Device
+    virtual void turnOn() {
+        if (!isOn) {
+            isOn = true;
+            cout << "[" << name << "] đã được BẬT NGUỒN trở lại." << endl;
+        }
+    }
+
     string getName() const { return name; }
     bool getStatus() const { return isOn; }
     virtual string getStatusString() const { return isOn ? "BẬT" : "TẮT"; }
@@ -63,33 +71,60 @@ public:
 };
 
 class SmartLock : public Device {
+private:
+    bool isLocked; // Thêm biến trạng thái khóa riêng biệt
 public:
-    SmartLock(string n) : Device(n) {}
+    // Khởi tạo khóa: Mặc định có điện (isOn = true) và Đang khóa (isLocked = true)
+    SmartLock(string n) : Device(n), isLocked(true) {
+        isOn = true; 
+    }
 
+    // Toggle bây giờ chỉ bật/tắt nguồn của khóa (ví dụ: hết pin, tắt hệ thống smart)
     void toggle() override {
         isOn = !isOn;
-        cout << "[Khóa thông minh] " << name << " hiện " << getStatusString() << endl;
+        cout << "[Khóa thông minh] Nguồn của " << name << " hiện " << (isOn ? "BẬT" : "TẮT") << endl;
     }
 
     void turnOff() override {
         if (isOn) {
             isOn = false;
-            cout << "[Khóa thông minh] " << name << " hiện ĐÃ MỞ KHÓA." << endl;
+            cout << "[Khóa thông minh] Đã tắt nguồn hệ thống " << name << ". (Chỉ có thể dùng chìa cơ)" << endl;
         } else {
-            cout << "[Khóa thông minh] " << name << " đã ở trạng thái ĐÃ MỞ KHÓA." << endl;
+            cout << "[Khóa thông minh] Nguồn " << name << " đã TẮT sẵn." << endl;
         }
     }
 
+    // Hàm khóa/mở khóa cơ học
     void lock() {
         if (!isOn) {
-            isOn = true;
+            cout << "[Khóa thông minh] " << name << " đang TẮT NGUỒN, không thể khóa điện tử!" << endl;
+            return;
+        }
+        if (!isLocked) {
+            isLocked = true;
             cout << "[Khóa thông minh] " << name << " hiện ĐÃ KHÓA." << endl;
         } else {
             cout << "[Khóa thông minh] " << name << " đã ở trạng thái ĐÃ KHÓA." << endl;
         }
     }
 
-    string getStatusString() const override { return isOn ? "ĐÃ KHÓA" : "ĐÃ MỞ KHÓA"; }
+    void unlock() {
+        if (!isOn) {
+            cout << "[Khóa thông minh] " << name << " đang TẮT NGUỒN, không thể mở khóa điện tử!" << endl;
+            return;
+        }
+        if (isLocked) {
+            isLocked = false;
+            cout << "[Khóa thông minh] " << name << " hiện ĐÃ MỞ KHÓA." << endl;
+        } else {
+            cout << "[Khóa thông minh] " << name << " đã ở trạng thái ĐÃ MỞ KHÓA." << endl;
+        }
+    }
+
+    string getStatusString() const override { 
+        if (!isOn) return "MẤT NGUỒN";
+        return isLocked ? "ĐÃ KHÓA" : "ĐÃ MỞ KHÓA"; 
+    }
 };
 
 class SecurityCamera : public Device {
@@ -115,6 +150,12 @@ public:
     }
 
     void arm(const string& key) {
+        // Fix: Chặn kích hoạt nếu camera đang sập nguồn
+        if (!isOn) {
+            cout << "[Camera an ninh] LỖI NGHIÊM TRỌNG: " << name << " đang TẮT NGUỒN, không thể kích hoạt bảo vệ!" << endl;
+            return;
+        }
+
         if (authenticate(key)) {
             isArmed = true;
             cout << "[Camera an ninh] " << name << " hiện ĐÃ KÍCH HOẠT." << endl;
@@ -138,7 +179,7 @@ public:
     Cooler(string n) : Device(n) {}
     void toggle() override {
         isOn = !isOn;
-        cout << "[Máy làm mát] " << name << " hiện đã " << getStatusString() << endl;
+        cout << "[Máy lạnh] " << name << " hiện đã " << getStatusString() << endl;
     }
 };
 
@@ -177,12 +218,12 @@ public:
                 currentTemp += 10; // Instantly heats up past target
                 cout << "   -> [Môi trường] Máy sưởi làm nhiệt độ tăng vọt lên " << currentTemp << "°C!" << endl;
             } else {
-                cout << "[Bộ điều nhiệt] Đang đọc: " << currentTemp << "°C (Quá nóng!). Đang kích hoạt máy làm mát..." << endl;
+                cout << "[Bộ điều nhiệt] Đang đọc: " << currentTemp << "°C (Quá nóng!). Đang kích hoạt máy lạnh..." << endl;
                 if (!linkedCooler->getStatus()) linkedCooler->toggle();
                 if (linkedHeater->getStatus()) linkedHeater->toggle();
 
                 currentTemp -= 10; // Instantly cools down below target
-                cout << "   -> [Môi trường] Máy làm mát làm nhiệt độ giảm xuống " << currentTemp << "°C!" << endl;
+                cout << "   -> [Môi trường] Máy lạnh làm nhiệt độ giảm xuống " << currentTemp << "°C!" << endl;
             }
             iterations++;
         }
@@ -237,25 +278,39 @@ public:
     }
 
     void executeGoodNightMacro(Thermostat* thermo, SmartLock* frontDoor, SecurityCamera* cam, const string& authKey) {
-        cout << "\n--- 3. Đang thực thi Macro 'Chúc Ngủ Ngon' (5+ thiết bị) ---" << endl;
+        cout << "\n---Đang thực thi Macro 'Chúc Ngủ Ngon' (5+ thiết bị) ---" << endl;
 
-        cout << "Bước 1: Tắt tất cả thiết bị..." << endl;
+        cout << "Bước 1: Quản lý nguồn điện (Kích hoạt BYPASS An ninh)..." << endl;
         for (Device* d : devices) {
-            // We want to turn off everything first
+            // Nhận diện thiết bị an ninh
+            if (dynamic_cast<SmartLock*>(d) != nullptr || dynamic_cast<SecurityCamera*>(d) != nullptr) {
+                
+                // CƠ CHẾ BYPASS: Nếu phát hiện thiết bị an ninh đang TẮT/MẤT NGUỒN -> ÉP BẬT
+                if (!d->getStatus()) {
+                    cout << "[HỆ THỐNG BYPASS] Cảnh báo: '" << d->getName() << "' đang mất nguồn! Đang ép cấp nguồn khẩn cấp..." << endl;
+                    d->turnOn(); 
+                    this_thread::sleep_for(chrono::milliseconds(300));
+                } else {
+                    cout << "[Hệ thống] Bỏ qua ngắt nguồn thiết bị an ninh: " << d->getName() << endl;
+                }
+                continue; 
+            }
+            
+            // Nếu không phải thiết bị an ninh, tiến hành tắt bình thường
             d->turnOff();
             this_thread::sleep_for(chrono::milliseconds(100));
         }
 
-        cout << "Bước 2: Đặt Bộ điều nhiệt thành 26°C..." << endl;
+        cout << "\nBước 2: Đặt Bộ điều nhiệt thành 26°C..." << endl;
         thermo->setTemperature(26);
         this_thread::sleep_for(chrono::milliseconds(500));
 
         cout << "Bước 3: Khóa Cửa Chính..." << endl;
-        frontDoor->lock();
+        frontDoor->lock(); 
         this_thread::sleep_for(chrono::milliseconds(500));
 
         cout << "Bước 4: Kích hoạt Camera an ninh..." << endl;
-        cam->arm(authKey);
+        cam->arm(authKey); 
         this_thread::sleep_for(chrono::milliseconds(500));
 
         cout << "[Đã hoàn thành thực thi Macro 'Chúc Ngủ Ngon']" << endl;
@@ -275,7 +330,7 @@ void demoUnauthorizedAccess(SecurityCamera* cam) {
 
 void showMenu() {
     cout << "\n=================================================" << endl;
-    cout << "        Trung Tâm Nhà Thông Minh - Bảng Điều Khiển " << endl;
+    cout << "    Trung Tâm Nhà Thông Minh - Bảng Điều Khiển   " << endl;
     cout << "=================================================" << endl;
     cout << "1. Liệt kê tất cả thiết bị" << endl;
     cout << "2. Chuyển đổi một thiết bị cụ thể" << endl;
@@ -297,7 +352,7 @@ int main() {
     SecurityCamera* frontCam = new SecurityCamera("Camera Cửa Chính", "secure123");
 
     Heater* hvacHeater = new Heater("Máy sưởi HVAC");
-    Cooler* hvacCooler = new Cooler("Máy làm mát HVAC");
+    Cooler* hvacCooler = new Cooler("Máy lạnh HVAC");
     Thermostat* mainThermo = new Thermostat("Bộ điều nhiệt Chính", hvacHeater, hvacCooler);
 
     Hub myHub;
