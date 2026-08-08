@@ -22,12 +22,22 @@ public:
     // Pure virtual function enforcing polymorphism
     virtual void toggle() = 0;
 
+    virtual void turnOff() {
+        if (isOn) {
+            isOn = false;
+            cout << "[" << name << "] hiện đã TẮT." << endl;
+        } else {
+            cout << "[" << name << "] đã ở trạng thái TẮT." << endl;
+        }
+    }
+
     string getName() const { return name; }
     bool getStatus() const { return isOn; }
+    virtual string getStatusString() const { return isOn ? "BẬT" : "TẮT"; }
 
     // Overload unary operator! to simulate malfunction or reboot
     virtual void operator!() {
-        cout << "[!] WARNING: Device '" << name << "' is malfunctioning/rebooting!" << endl;
+        cout << "[!] CẢNH BÁO: Thiết bị '" << name << "' đang bị lỗi/khởi động lại!" << endl;
         isOn = false;
     }
 };
@@ -39,37 +49,47 @@ public:
 
     void toggle() override {
         isOn = !isOn;
-        cout << "[Light] " << name << " is now " << (isOn ? "ON" : "OFF") << endl;
+        cout << "[Đèn] " << name << " hiện đã " << getStatusString() << endl;
     }
 
-    void turnOff() {
+    void turnOff() override {
         if (isOn) {
-            toggle();
+            isOn = false;
+            cout << "[Đèn] " << name << " hiện đã TẮT." << endl;
         } else {
-            cout << "[Light] " << name << " is already OFF." << endl;
+            cout << "[Đèn] " << name << " đã ở trạng thái TẮT." << endl;
         }
     }
 };
 
 class SmartLock : public Device {
-private:
-    bool isLocked;
 public:
-    SmartLock(string n) : Device(n), isLocked(false) {}
+    SmartLock(string n) : Device(n) {}
 
     void toggle() override {
         isOn = !isOn;
-        isLocked = !isLocked;
-        cout << "[SmartLock] " << name << " is now " << (isLocked ? "LOCKED" : "UNLOCKED") << endl;
+        cout << "[Khóa thông minh] " << name << " hiện " << getStatusString() << endl;
+    }
+
+    void turnOff() override {
+        if (isOn) {
+            isOn = false;
+            cout << "[Khóa thông minh] " << name << " hiện ĐÃ MỞ KHÓA." << endl;
+        } else {
+            cout << "[Khóa thông minh] " << name << " đã ở trạng thái ĐÃ MỞ KHÓA." << endl;
+        }
     }
 
     void lock() {
-        if (!isLocked) {
-            toggle();
+        if (!isOn) {
+            isOn = true;
+            cout << "[Khóa thông minh] " << name << " hiện ĐÃ KHÓA." << endl;
         } else {
-            cout << "[SmartLock] " << name << " is already LOCKED." << endl;
+            cout << "[Khóa thông minh] " << name << " đã ở trạng thái ĐÃ KHÓA." << endl;
         }
     }
+
+    string getStatusString() const override { return isOn ? "ĐÃ KHÓA" : "ĐÃ MỞ KHÓA"; }
 };
 
 class SecurityCamera : public Device {
@@ -81,15 +101,15 @@ public:
 
     void toggle() override {
         isOn = !isOn;
-        cout << "[SecurityCamera] " << name << " power is now " << (isOn ? "ON" : "OFF") << endl;
+        cout << "[Camera an ninh] Nguồn của " << name << " hiện đã " << getStatusString() << endl;
     }
 
     bool authenticate(const string& key) {
         if (key == authKey) {
-            cout << "[SecurityCamera] Authentication SUCCESS for " << name << "." << endl;
+            cout << "[Camera an ninh] Xác thực THÀNH CÔNG cho " << name << "." << endl;
             return true;
         } else {
-            cout << "[SecurityCamera] ERROR: Authentication FAILED for " << name << "! Unauthorized access attempt." << endl;
+            cout << "[Camera an ninh] LỖI: Xác thực THẤT BẠI cho " << name << "! Cố gắng truy cập trái phép." << endl;
             return false;
         }
     }
@@ -97,9 +117,9 @@ public:
     void arm(const string& key) {
         if (authenticate(key)) {
             isArmed = true;
-            cout << "[SecurityCamera] " << name << " is now ARMED." << endl;
+            cout << "[Camera an ninh] " << name << " hiện ĐÃ KÍCH HOẠT." << endl;
         } else {
-            cout << "[SecurityCamera] Action denied: " << name << " could not be armed due to auth failure." << endl;
+            cout << "[Camera an ninh] Từ chối thao tác: Không thể kích hoạt " << name << " do lỗi xác thực." << endl;
         }
     }
 };
@@ -109,7 +129,7 @@ public:
     Heater(string n) : Device(n) {}
     void toggle() override {
         isOn = !isOn;
-        cout << "[Heater] " << name << " is now " << (isOn ? "ON" : "OFF") << endl;
+        cout << "[Máy sưởi] " << name << " hiện đã " << getStatusString() << endl;
     }
 };
 
@@ -118,7 +138,7 @@ public:
     Cooler(string n) : Device(n) {}
     void toggle() override {
         isOn = !isOn;
-        cout << "[Cooler] " << name << " is now " << (isOn ? "ON" : "OFF") << endl;
+        cout << "[Máy làm mát] " << name << " hiện đã " << getStatusString() << endl;
     }
 };
 
@@ -133,16 +153,16 @@ public:
 
     void toggle() override {
         isOn = !isOn;
-        cout << "[Thermostat] " << name << " is now " << (isOn ? "ON" : "OFF") << endl;
+        cout << "[Bộ điều nhiệt] " << name << " hiện đã " << getStatusString() << endl;
     }
 
     void setTemperature(int temp) {
         temperature = temp;
-        cout << "[Thermostat] " << name << " target temperature set to " << temperature << "°C" << endl;
+        cout << "[Bộ điều nhiệt] Nhiệt độ mục tiêu của " << name << " được đặt thành " << temperature << "°C" << endl;
     }
 
     void triggerFeedbackLoop() {
-        cout << "\n--- Initiating Scenario A: Environment Feedback Loop ---" << endl;
+        cout << "\n--- Bắt đầu Kịch bản A: Vòng lặp phản hồi môi trường ---" << endl;
         int currentTemp = 18;
         int targetTemp = 22;
         int iterations = 0;
@@ -150,23 +170,23 @@ public:
         while (iterations < 6) {
             this_thread::sleep_for(chrono::milliseconds(800));
             if (currentTemp < targetTemp) {
-                cout << "[Thermostat] Reading: " << currentTemp << "°C (Too cold!). Triggering Heater..." << endl;
+                cout << "[Bộ điều nhiệt] Đang đọc: " << currentTemp << "°C (Quá lạnh!). Đang kích hoạt máy sưởi..." << endl;
                 if (!linkedHeater->getStatus()) linkedHeater->toggle();
                 if (linkedCooler->getStatus()) linkedCooler->toggle();
 
                 currentTemp += 10; // Instantly heats up past target
-                cout << "   -> [Environment] Heater caused temperature to spike to " << currentTemp << "°C!" << endl;
+                cout << "   -> [Môi trường] Máy sưởi làm nhiệt độ tăng vọt lên " << currentTemp << "°C!" << endl;
             } else {
-                cout << "[Thermostat] Reading: " << currentTemp << "°C (Too hot!). Triggering Cooler..." << endl;
+                cout << "[Bộ điều nhiệt] Đang đọc: " << currentTemp << "°C (Quá nóng!). Đang kích hoạt máy làm mát..." << endl;
                 if (!linkedCooler->getStatus()) linkedCooler->toggle();
                 if (linkedHeater->getStatus()) linkedHeater->toggle();
 
                 currentTemp -= 10; // Instantly cools down below target
-                cout << "   -> [Environment] Cooler caused temperature to drop to " << currentTemp << "°C!" << endl;
+                cout << "   -> [Môi trường] Máy làm mát làm nhiệt độ giảm xuống " << currentTemp << "°C!" << endl;
             }
             iterations++;
         }
-        cout << "[System] Warning: Infinite feedback loop detected! Force terminating HVAC operations." << endl;
+        cout << "[Hệ thống] Cảnh báo: Phát hiện vòng lặp phản hồi vô hạn! Buộc chấm dứt hoạt động HVAC." << endl;
         if (linkedHeater->getStatus()) linkedHeater->toggle();
         if (linkedCooler->getStatus()) linkedCooler->toggle();
     }
@@ -182,7 +202,7 @@ public:
     }
 
     void toggleAll() {
-        cout << "\n--- 1. Normal Polymorphic Toggling ---" << endl;
+        cout << "\n--- 1. Chuyển đổi Đa hình Thông thường ---" << endl;
         for (Device* d : devices) {
             d->toggle();
             this_thread::sleep_for(chrono::milliseconds(300));
@@ -190,7 +210,7 @@ public:
     }
 
     void demonstrateOverload() {
-        cout << "\n--- 2. Demonstrating Operator Overloading (!Device) ---" << endl;
+        cout << "\n--- 2. Trình diễn Nạp chồng Toán tử (!Device) ---" << endl;
         if (devices.size() >= 2) {
             !(*devices[0]); // Using overloaded operator!
             this_thread::sleep_for(chrono::milliseconds(400));
@@ -199,9 +219,9 @@ public:
     }
 
     void listDevices() const {
-        cout << "\n--- Connected Devices ---" << endl;
+        cout << "\n--- Các Thiết Bị Đã Kết Nối ---" << endl;
         for (size_t i = 0; i < devices.size(); ++i) {
-            cout << i + 1 << ". " << devices[i]->getName() << " [" << (devices[i]->getStatus() ? "ON" : "OFF") << "]" << endl;
+            cout << i + 1 << ". " << devices[i]->getName() << " [" << devices[i]->getStatusString() << "]" << endl;
         }
     }
 
@@ -216,30 +236,29 @@ public:
         return nullptr;
     }
 
-    void executeGoodNightMacro(Light* livingLight, Light* kitchenLight, Thermostat* thermo, SmartLock* frontDoor, SecurityCamera* cam, const string& authKey) {
-        cout << "\n--- 3. Executing 'Good Night' Macro (5+ devices) ---" << endl;
+    void executeGoodNightMacro(Thermostat* thermo, SmartLock* frontDoor, SecurityCamera* cam, const string& authKey) {
+        cout << "\n--- 3. Đang thực thi Macro 'Chúc Ngủ Ngon' (5+ thiết bị) ---" << endl;
 
-        cout << "Step 1: Turning off Living Room Light..." << endl;
-        livingLight->turnOff();
+        cout << "Bước 1: Tắt tất cả thiết bị..." << endl;
+        for (Device* d : devices) {
+            // We want to turn off everything first
+            d->turnOff();
+            this_thread::sleep_for(chrono::milliseconds(100));
+        }
+
+        cout << "Bước 2: Đặt Bộ điều nhiệt thành 26°C..." << endl;
+        thermo->setTemperature(26);
         this_thread::sleep_for(chrono::milliseconds(500));
 
-        cout << "Step 2: Turning off Kitchen Light..." << endl;
-        kitchenLight->turnOff();
-        this_thread::sleep_for(chrono::milliseconds(500));
-
-        cout << "Step 3: Setting Thermostat to 20°C..." << endl;
-        thermo->setTemperature(20);
-        this_thread::sleep_for(chrono::milliseconds(500));
-
-        cout << "Step 4: Locking Front Door..." << endl;
+        cout << "Bước 3: Khóa Cửa Chính..." << endl;
         frontDoor->lock();
         this_thread::sleep_for(chrono::milliseconds(500));
 
-        cout << "Step 5: Arming Security Camera..." << endl;
+        cout << "Bước 4: Kích hoạt Camera an ninh..." << endl;
         cam->arm(authKey);
         this_thread::sleep_for(chrono::milliseconds(500));
 
-        cout << "['Good Night' Macro Execution Complete]" << endl;
+        cout << "[Đã hoàn thành thực thi Macro 'Chúc Ngủ Ngon']" << endl;
     }
 };
 
@@ -248,38 +267,38 @@ void demoFeedbackLoop(Thermostat* thermo) {
 }
 
 void demoUnauthorizedAccess(SecurityCamera* cam) {
-    cout << "\n--- 5. Scenario B: Unauthorized Access Attempt ---" << endl;
-    cout << "Attempting to arm Security Camera with key 'HACKER99'..." << endl;
+    cout << "\n--- 5. Kịch bản B: Cố gắng truy cập trái phép ---" << endl;
+    cout << "Đang thử kích hoạt Camera an ninh với khóa 'HACKER99'..." << endl;
     this_thread::sleep_for(chrono::milliseconds(800));
     cam->arm("HACKER99");
 }
 
 void showMenu() {
     cout << "\n=================================================" << endl;
-    cout << "        Smart Home Hub - Control Panel           " << endl;
+    cout << "        Trung Tâm Nhà Thông Minh - Bảng Điều Khiển " << endl;
     cout << "=================================================" << endl;
-    cout << "1. List all devices" << endl;
-    cout << "2. Toggle a specific device" << endl;
-    cout << "3. Toggle all devices (Polymorphic Demo)" << endl;
-    cout << "4. Simulate device malfunction (Operator Overload Demo)" << endl;
-    cout << "5. Execute 'Good Night' Macro" << endl;
-    cout << "6. Run Scenario A: Feedback Loop" << endl;
-    cout << "7. Run Scenario B: Unauthorized Access" << endl;
-    cout << "8. Exit" << endl;
+    cout << "1. Liệt kê tất cả thiết bị" << endl;
+    cout << "2. Chuyển đổi một thiết bị cụ thể" << endl;
+    cout << "3. Chuyển đổi tất cả thiết bị (Demo Đa Hình)" << endl;
+    cout << "4. Mô phỏng lỗi thiết bị (Demo Nạp Chồng Toán Tử)" << endl;
+    cout << "5. Thực thi Macro 'Chúc Ngủ Ngon'" << endl;
+    cout << "6. Chạy Kịch bản A: Vòng lặp phản hồi" << endl;
+    cout << "7. Chạy Kịch bản B: Truy cập trái phép" << endl;
+    cout << "8. Thoát" << endl;
     cout << "=================================================" << endl;
-    cout << "Enter your choice: ";
+    cout << "Nhập lựa chọn của bạn: ";
 }
 
 int main() {
     // Initialize Devices
-    Light* livingLight = new Light("Living Room Light");
-    Light* kitchenLight = new Light("Kitchen Light");
-    SmartLock* frontDoor = new SmartLock("Front Door");
-    SecurityCamera* frontCam = new SecurityCamera("Front Door Cam", "secure123");
+    Light* livingLight = new Light("Đèn Phòng Khách");
+    Light* kitchenLight = new Light("Đèn Nhà Bếp");
+    SmartLock* frontDoor = new SmartLock("Cửa Chính");
+    SecurityCamera* frontCam = new SecurityCamera("Camera Cửa Chính", "secure123");
 
-    Heater* hvacHeater = new Heater("HVAC Heater");
-    Cooler* hvacCooler = new Cooler("HVAC Cooler");
-    Thermostat* mainThermo = new Thermostat("Main Thermostat", hvacHeater, hvacCooler);
+    Heater* hvacHeater = new Heater("Máy sưởi HVAC");
+    Cooler* hvacCooler = new Cooler("Máy làm mát HVAC");
+    Thermostat* mainThermo = new Thermostat("Bộ điều nhiệt Chính", hvacHeater, hvacCooler);
 
     Hub myHub;
     myHub.addDevice(livingLight);
@@ -296,7 +315,7 @@ int main() {
         string choiceStr;
         if (!(cin >> choiceStr)) {
             // Handle EOF (Ctrl+D) or stream errors gracefully
-            cout << "\nExiting Smart Home Hub..." << endl;
+            cout << "\nĐang thoát Trung tâm Nhà thông minh..." << endl;
             break;
         }
 
@@ -304,7 +323,7 @@ int main() {
         try {
             choice = stoi(choiceStr);
         } catch (...) {
-            cout << "Invalid input. Please enter a number." << endl;
+            cout << "Đầu vào không hợp lệ. Vui lòng nhập một số." << endl;
             continue;
         }
 
@@ -314,7 +333,7 @@ int main() {
                 break;
             case 2: {
                 myHub.listDevices();
-                cout << "Enter the device number to toggle (1-" << myHub.getDeviceCount() << "): ";
+                cout << "Nhập số thiết bị để chuyển đổi (1-" << myHub.getDeviceCount() << "): ";
                 string devChoiceStr;
                 cin >> devChoiceStr;
                 try {
@@ -323,10 +342,10 @@ int main() {
                     if (d) {
                         d->toggle();
                     } else {
-                        cout << "Invalid device number." << endl;
+                        cout << "Số thiết bị không hợp lệ." << endl;
                     }
                 } catch (...) {
-                    cout << "Invalid input." << endl;
+                    cout << "Đầu vào không hợp lệ." << endl;
                 }
                 break;
             }
@@ -337,12 +356,7 @@ int main() {
                 myHub.demonstrateOverload();
                 break;
             case 5:
-                // Set some initial states to make the Good Night macro more meaningful
-                if (!livingLight->getStatus()) livingLight->toggle();
-                if (!kitchenLight->getStatus()) kitchenLight->toggle();
-                if (frontDoor->getStatus()) frontDoor->toggle(); // ensure it's unlocked initially
-
-                myHub.executeGoodNightMacro(livingLight, kitchenLight, mainThermo, frontDoor, frontCam, "secure123");
+                myHub.executeGoodNightMacro(mainThermo, frontDoor, frontCam, "secure123");
                 break;
             case 6:
                 demoFeedbackLoop(mainThermo);
@@ -351,11 +365,11 @@ int main() {
                 demoUnauthorizedAccess(frontCam);
                 break;
             case 8:
-                cout << "Exiting Smart Home Hub. Goodbye!" << endl;
+                cout << "Đang thoát Trung tâm Nhà thông minh. Tạm biệt!" << endl;
                 running = false;
                 break;
             default:
-                cout << "Invalid choice. Please select from 1-8." << endl;
+                cout << "Lựa chọn không hợp lệ. Vui lòng chọn từ 1-8." << endl;
         }
     }
 
