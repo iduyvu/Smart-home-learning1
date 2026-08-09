@@ -29,12 +29,18 @@ Toàn bộ logic khởi tạo và luồng chạy chính được thiết lập t
 
 ### Yêu cầu hệ thống
 - Trình biên dịch C++ (GCC, Clang, hoặc MSVC). Cần hỗ trợ tối thiểu C++11.
+- `make` (Để sử dụng Makefile)
 
 ### Cách biên dịch và chạy (Terminal/Command Prompt)
 
-# Biên dịch file main.cpp thành file thực thi
-g++ main.cpp -o smarthome
+Dự án này sử dụng cấu trúc mã nguồn được phân chia thành các thư mục `src/` (chứa các file `.cpp`) và `include/` (chứa các file `.h`).
+
+# Biên dịch thông qua Makefile
+make
 
 # Chạy chương trình
 ./smarthome     # Trên Linux/macOS
 smarthome.exe   # Trên Windows
+
+# Xóa các file đã biên dịch (Dọn dẹp)
+make clean
