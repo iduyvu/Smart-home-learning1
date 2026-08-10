@@ -25,6 +25,9 @@ public:
     std::shared_ptr<Device> getRemovableDevice(size_t removableIndex, size_t& actualIndex);
 
     void executeGoodNightMacro(std::shared_ptr<Thermostat> thermo, std::shared_ptr<SmartLock> frontDoor, std::shared_ptr<SecurityCamera> cam, const std::string& authKey);
+
+    void tickTime(int minutes);
+    void triggerFireAlarmMacro();
 };
 
 #endif // HUB_H

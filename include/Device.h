@@ -3,13 +3,23 @@
 
 #include <iostream>
 #include <string>
+#include <chrono>
 
 class Device {
 protected:
     std::string name;
     bool isOn;
+
+    // Thuộc tính năng lượng và thời gian
+    double powerWattage;
+    std::chrono::system_clock::time_point turnOnTime;
+    std::chrono::minutes cumulativeActiveTime;
+
+    // Hàm tiện ích để cập nhật trạng thái và tính toán thời gian chạy một cách thống nhất
+    void setPowerState(bool newState);
+
 public:
-    Device(std::string n);
+    Device(std::string n, double wattage = 0.0);
     virtual ~Device();
 
     // Pure virtual function enforcing polymorphism
@@ -26,6 +36,15 @@ public:
     virtual void operator!();
 
     virtual bool isRemovable() const { return false; }
+
+    // Phương thức đo năng lượng
+    long long getActiveMinutes() const;
+    long long getContinuousActiveMinutes() const;
+    double getConsumedKWh() const;
+
+    // Phương thức hỗ trợ Báo Cháy (Fire Alarm)
+    virtual bool isEmergencyExit() const { return false; }
+    virtual void unlockEmergency() {}
 };
 
 #endif // DEVICE_H

@@ -6,10 +6,10 @@
 using namespace std;
 
 Thermostat::Thermostat(string n, std::shared_ptr<Heater> h, std::shared_ptr<Cooler> c)
-    : Device(n), temperature(22), linkedHeater(h), linkedCooler(c) {}
+    : Device(n, 10.0), temperature(22), linkedHeater(h), linkedCooler(c) {} // Bộ điều nhiệt 10W
 
 void Thermostat::toggle() {
-    isOn = !isOn;
+    setPowerState(!isOn);
     cout << "[Bộ điều nhiệt] " << name << " hiện đã " << getStatusString() << endl;
 }
 

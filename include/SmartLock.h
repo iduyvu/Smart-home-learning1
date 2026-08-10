@@ -16,6 +16,9 @@ public:
     void unlock();
 
     std::string getStatusString() const override;
+
+    bool isEmergencyExit() const override { return true; }
+    void unlockEmergency() override;
 };
 
 #endif // SMARTLOCK_H

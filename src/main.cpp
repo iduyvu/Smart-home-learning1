@@ -39,6 +39,8 @@ void showMenu() {
     cout << "8. Thoát" << endl;
     cout << "9. Thêm thiết bị" << endl;
     cout << "10. Xóa thiết bị" << endl;
+    cout << "11. Giả lập thời gian (Tick 3 phút)" << endl;
+    cout << "12. Kích hoạt báo cháy (Fire Alarm)" << endl;
     cout << "=================================================" << endl;
     cout << "Nhập lựa chọn của bạn: ";
 }
@@ -176,8 +178,14 @@ int main() {
                 }
                 break;
             }
+            case 11:
+                myHub.tickTime(3);
+                break;
+            case 12:
+                myHub.triggerFireAlarmMacro();
+                break;
             default:
-                cout << "Lựa chọn không hợp lệ. Vui lòng chọn từ 1-10." << endl;
+                cout << "Lựa chọn không hợp lệ. Vui lòng chọn từ 1-12." << endl;
         }
     }
 
