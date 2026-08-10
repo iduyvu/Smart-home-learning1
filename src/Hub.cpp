@@ -2,6 +2,8 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include "Heater.h"
+#include "SimulatedClock.h"
 
 using namespace std;
 
@@ -36,7 +38,14 @@ void Hub::demonstrateOverload() {
 void Hub::listDevices() const {
     cout << "\n--- Các Thiết Bị Đã Kết Nối ---" << endl;
     for (size_t i = 0; i < devices.size(); ++i) {
-        cout << i + 1 << ". " << devices[i]->getName() << " [" << devices[i]->getStatusString() << "]" << endl;
+        auto d = devices[i];
+        long long activeMins = d->getActiveMinutes();
+        double kWh = d->getConsumedKWh();
+
+        cout << i + 1 << ". " << d->getName()
+             << " | Trạng thái: " << d->getStatusString()
+             << " | Tgian h.động: " << activeMins << " phút (" << (activeMins / 60) << " giờ) "
+             << " | Tiêu thụ: " << kWh << " kWh" << endl;
     }
 }
 
@@ -116,4 +125,49 @@ void Hub::executeGoodNightMacro(std::shared_ptr<Thermostat> thermo, std::shared_
     this_thread::sleep_for(chrono::milliseconds(500));
 
     cout << "[Đã hoàn thành thực thi Macro 'Chúc Ngủ Ngon']" << endl;
+}
+
+void Hub::tickTime(int minutes) {
+    cout << "\n[Đồng hồ] Đang trôi nhanh thời gian " << minutes << " phút..." << endl;
+    SimulatedClock::advanceTime(minutes);
+
+    bool safetyWarning = false;
+    // Kiểm tra an toàn
+    for (auto& d : devices) {
+        if (auto heater = dynamic_pointer_cast<Heater>(d)) {
+            // Kiểm tra xem heater có bật không
+            if (heater->getStatus()) {
+                if (heater->getContinuousActiveMinutes() >= 240) { // 4 giờ liên tục
+                    cout << "\n[!] CẢNH BÁO AN TOÀN & NĂNG LƯỢNG NGHIÊM TRỌNG [!]" << endl;
+                    cout << "Máy sưởi '" << heater->getName() << "' đã chạy liên tục >= 4 giờ!" << endl;
+                    cout << "Nguy cơ cháy nổ! Vui lòng kiểm tra lại thiết bị." << endl;
+                    safetyWarning = true;
+                }
+            }
+        }
+    }
+    if (!safetyWarning) {
+         cout << "[Hệ thống] Trạng thái bình thường. Không phát hiện rủi ro." << endl;
+    }
+}
+
+void Hub::triggerFireAlarmMacro() {
+    cout << "\n==============================================" << endl;
+    cout << "  [!!!] KÍCH HOẠT MACRO BÁO CHÁY KHẨN CẤP [!!!]  " << endl;
+    cout << "==============================================" << endl;
+
+    for (auto& d : devices) {
+        if (d->isEmergencyExit()) {
+            d->unlockEmergency();
+        } else {
+            // Ngắt điện toàn bộ thiết bị điện để tránh chập cháy
+            if (d->getStatus()) {
+                 cout << "[Hệ thống Báo Cháy] Đang ép tắt nguồn thiết bị điện: " << d->getName() << endl;
+                 d->turnOff();
+            }
+        }
+        this_thread::sleep_for(chrono::milliseconds(100));
+    }
+
+    cout << "\n[Hệ thống] Đã hoàn tất các biện pháp khẩn cấp! Yêu cầu mọi người sơ tán ngay lập tức!" << endl;
 }

@@ -3,18 +3,18 @@
 
 using namespace std;
 
-SmartLock::SmartLock(string n) : Device(n), isLocked(true) {
-    isOn = true;
+SmartLock::SmartLock(string n) : Device(n, 5.0), isLocked(true) { // Khóa 5W
+    setPowerState(true);
 }
 
 void SmartLock::toggle() {
-    isOn = !isOn;
+    setPowerState(!isOn);
     cout << "[Khóa thông minh] Nguồn của " << name << " hiện " << (isOn ? "BẬT" : "TẮT") << endl;
 }
 
 void SmartLock::turnOff() {
     if (isOn) {
-        isOn = false;
+        setPowerState(false);
         cout << "[Khóa thông minh] Đã tắt nguồn hệ thống " << name << ". (Chỉ có thể dùng chìa cơ)" << endl;
     } else {
         cout << "[Khóa thông minh] Nguồn " << name << " đã TẮT sẵn." << endl;
@@ -45,6 +45,11 @@ void SmartLock::unlock() {
     } else {
         cout << "[Khóa thông minh] " << name << " đã ở trạng thái ĐÃ MỞ KHÓA." << endl;
     }
+}
+
+void SmartLock::unlockEmergency() {
+    isLocked = false;
+    cout << "[Khóa thông minh] [BÁO CHÁY] " << name << " ĐÃ BỊ MỞ KHÓA KHẨN CẤP!" << endl;
 }
 
 string SmartLock::getStatusString() const {

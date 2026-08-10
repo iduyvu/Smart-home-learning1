@@ -3,10 +3,10 @@
 
 using namespace std;
 
-SecurityCamera::SecurityCamera(string n, string key) : Device(n), isArmed(false), authKey(key) {}
+SecurityCamera::SecurityCamera(string n, string key) : Device(n, 20.0), isArmed(false), authKey(key) {} // Camera 20W
 
 void SecurityCamera::toggle() {
-    isOn = !isOn;
+    setPowerState(!isOn);
     cout << "[Camera an ninh] Nguồn của " << name << " hiện đã " << getStatusString() << endl;
 }
 
